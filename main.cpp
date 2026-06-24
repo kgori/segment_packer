@@ -9,6 +9,7 @@
 // Define two versions of a size_t index type: one for the dynamic programming table and one for the segments themselves.
 using DpIdx = size_t;
 using SegmentIdx = size_t;
+using RowIdx = size_t;
 
 struct Segment {
     long start, end, width; // interval is half open [start, end)
@@ -44,9 +45,10 @@ public:
                   });
     }
     
-    std::vector<std::vector<SegmentIdx>> solve() {
-        std::vector<std::vector<SegmentIdx>> rows;
+    std::vector<RowIdx> solve() {
+        std::vector<RowIdx> rows(master_segments.size(), 0);
         size_t remaining_count = master_segments.size();
+        RowIdx current_row = 0;
 
         while (remaining_count > 0) {
             std::vector<SegmentIdx> active_segment_indices;
@@ -63,9 +65,10 @@ public:
 
             for (SegmentIdx idx : best_row) {
                 expired[idx] = true;
+                rows[idx] = current_row;
                 remaining_count--;
             }
-            rows.push_back(std::move(best_row));
+            current_row++;
         }
         return rows;
     }
@@ -150,34 +153,22 @@ private:
         return reconstruct_solution(parent_dp_index, max_scores, active_indices);
     }
 };
-    
-    
-
-
-namespace algorithm {
-
-
-}
 
 int main() {
     const std::vector<Segment> segments {
-        {12732, 21473, "A"},
-        {7665, 15000, "B"},
-        {343, 7234, "C"},
-        {19092, 27889, "D"},
-        {343, 7234, "E"},
-        {22100, 26599, "F"},
+      {12732, 21473, "A"}, {7665, 15000, "B"}, {343, 7234, "C"},
+          {19092, 27889, "D"}, {343, 7234, "E"}, {22100, 26599, "F"},
+          {5185, 21580, "G"}, {11438, 27411, "H"}, {8076, 24021, "I"},
+          {1996, 18605, "J"}, {18206, 35414, "K"}, {26765, 43516, "L"},
+          {9455, 25673, "M"}, {19555, 37194, "N"}, {6461, 24440, "O"},
+          {2716, 18718, "P"}, {6243, 24315, "Q"}, {1515, 18454, "R"},
+          {30000, 40000, "S"}
     };
 
     SegmentPacker packer(std::move(segments));
     auto results = packer.solve();
-    const auto &master_list = packer.get_segments();
-
-    for (size_t row_idx = 0; row_idx < results.size(); ++row_idx) {
-        std::cout << "Row " << row_idx + 1 << ": ";
-        for (auto seg_idx : results[row_idx]) {
-            std::cout << master_list[seg_idx] << " ";
-        }
-        std::cout << std::endl;
+    for (size_t i = 0; i < results.size(); ++i) {
+        std::cout << packer.get_segments()[i] << " assigned to row " << results[i] << "\n";
     }
+    return 0;
 }
