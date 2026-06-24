@@ -12,7 +12,7 @@ using SegmentIdx = size_t;
 using RowIdx = size_t;
 
 struct Segment {
-    long start, end, width; // interval is half open [start, end)
+    const long start, end, width; // interval is half open [start, end)
     std::string id;
     Segment(long start_, long end_, std::string id_)
         : start(start_), end(end_), width(end_ - start_), id(id_) {
@@ -46,6 +46,9 @@ public:
     }
     
     std::vector<RowIdx> solve() {
+        // Reset expired flags for all segments
+        std::fill(expired.begin(), expired.end(), false);
+      
         std::vector<RowIdx> rows(master_segments.size(), 0);
         size_t remaining_count = master_segments.size();
         RowIdx current_row = 0;
@@ -92,14 +95,16 @@ private:
         const std::vector<long> &max_scores,
         const std::vector<SegmentIdx> &active_segment_indices) const {
         
-        std::optional<DpIdx> best_dp_index = get_best_dp_index(max_scores);
         std::vector<SegmentIdx> solution;
-        
-        while (best_dp_index) {
-            SegmentIdx seg_index = active_segment_indices[*best_dp_index];
+        DpIdx current = get_best_dp_index(max_scores);
+        do {
+            SegmentIdx seg_index = active_segment_indices[current];
             solution.push_back(seg_index);
-            best_dp_index = parent_dp_index[*best_dp_index];
-        }
+            auto next = parent_dp_index[current];
+            if (!next) break;
+            current = *next;
+        } while (true);
+        
         std::reverse(solution.begin(), solution.end());
         return solution;
     }
@@ -116,16 +121,20 @@ private:
         for (SegmentIdx idx : active_indices) {
             ends.push_back(master_segments[idx].end);
         }
-        
+
+        // parent_dp_index[i] = DP index of the best predecessor of i
+        // max_scores[i] = max total width of non-overlapping selection of
+        //                 segments from active_indices[0..=i] 
+        // best_upto[i] = arg max_{j<=i} max scores[j] (prefix-maximum tracker)
         std::vector<std::optional<DpIdx>> parent_dp_index(n, std::nullopt);
         std::vector<long> max_scores(n, 0);
-        std::vector<DpIdx> running_best_dp_index(n, 0); 
+        std::vector<DpIdx> best_upto(n, 0); 
         
         for (DpIdx i = 0; i < n; ++i) {
             const Segment& seg_i = master_segments[active_indices[i]];
             max_scores[i] = seg_i.width;
 
-            // 2. Binary search for the first segment that ends after seg_i starts
+            // Find the rightmost predecessor whose end <= seg_i.start using binary search
             auto it = std::upper_bound(ends.begin(), ends.end(), seg_i.start);
 
             // If it's not the beginning, the element before it is the last segment that ends before seg_i starts
@@ -133,7 +142,7 @@ private:
                 DpIdx p_i = std::distance(ends.begin(), it) - 1;
 
                 // Get the index holding the max score up to p_i
-                DpIdx best_predecessor_dp_index = running_best_dp_index[p_i];
+                DpIdx best_predecessor_dp_index = best_upto[p_i];
                 
                 max_scores[i] = max_scores[best_predecessor_dp_index] + seg_i.width;
                 parent_dp_index[i] = best_predecessor_dp_index;
@@ -141,12 +150,12 @@ private:
 
             // 3. Maintain the running maximum index tracker
             if (i == 0) {
-                running_best_dp_index[i] = 0;
+                best_upto[i] = 0;
             } else {
-                if (max_scores[i] > max_scores[running_best_dp_index[i - 1]]) {
-                    running_best_dp_index[i] = i;
+                if (max_scores[i] > max_scores[best_upto[i - 1]]) {
+                    best_upto[i] = i;
                 } else {
-                    running_best_dp_index[i] = running_best_dp_index[i - 1];
+                    best_upto[i] = best_upto[i - 1];
                 }
             }
         }
