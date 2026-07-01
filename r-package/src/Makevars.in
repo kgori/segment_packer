@@ -1,0 +1,4 @@
+# @PRE_BUILD_NOTE@ Generated automatically by CMake
+PKG_CPPFLAGS = -I"@CMAKE_SOURCE_DIR@/include"
+VPATH = @CMAKE_SOURCE_DIR@/src
+OBJECTS = rcpp_bindings.o RcppExports.o segment_packer.o segment.o

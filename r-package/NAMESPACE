@@ -1,0 +1,3 @@
+useDynLib(SegmentPackerR, .registration=true)
+importFrom(Rcpp, evalCpp)
+exportPattern("^[[:alpha:]]+")

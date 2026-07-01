@@ -1,0 +1,9 @@
+Package: segmentpacker
+Type: Package
+Title: Pack segments into layers, without overlaps
+Version: 0.1.0
+Encoding: UTF-8
+Imports: Rcpp
+LinkingTo: Rcpp
+License: Unlicense
+Config/roxygen2/version: 8.0.0
