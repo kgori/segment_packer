@@ -1,0 +1,8 @@
+# 1. Use relative paths to escape the r-package directory
+PKG_CPPFLAGS = -I../../include
+
+# 2. Tell R's VPATH where to find the core C++ source files relatively
+VPATH = ../../src
+
+# 3. Specify the objects to build
+OBJECTS = rcpp_bindings.o RcppExports.o segment_packer.o segment.o

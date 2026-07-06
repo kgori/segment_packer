@@ -14,21 +14,14 @@ find_program(R_EXECUTABLE R)
 if(R_EXECUTABLE)
     message(STATUS "R found: ${R_EXECUTABLE}. Enabling R wrapper target.")
 
-    # 1. Configure Makevars with absolute paths from CMake
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/r-package/src/Makevars.in
-        ${CMAKE_CURRENT_SOURCE_DIR}/r-package/src/Makevars
-        @ONLY
-    )
-
-    # 2. Automatically generate the RcppExports.cpp / wrapper functions
+    # 1. Automatically generate the RcppExports.cpp / wrapper functions
     add_custom_target(r_attributes
         COMMAND ${R_EXECUTABLE} -e "Rcpp::compileAttributes('${CMAKE_CURRENT_SOURCE_DIR}/r-package'); if(requireNamespace('roxygen2', quietly=TRUE)) { roxygen2::roxygenize('${CMAKE_CURRENT_SOURCE_DIR}/r-package') } else { message('Warning: roxygen2 not found. Skipping NAMESPACE/documentation auto-generation.') }"
         VERBATIM
         COMMENT "Generating Rcpp attributes..."
     )
 
-    # 3. Target to build/install the R package locally
+    # 2. Target to build/install the R package locally
     add_custom_target(r_package
         DEPENDS r_attributes
         COMMAND ${R_EXECUTABLE} CMD INSTALL ${CMAKE_CURRENT_SOURCE_DIR}/r-package --clean
