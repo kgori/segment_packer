@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 project(SegmentPacking)
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 20)
 
-add_library(stacker STATIC ${CMAKE_SOURCE_DIR}/src/segment.cpp ${CMAKE_SOURCE_DIR}/src/segment_packer.cpp)
-target_include_directories(stacker PUBLIC include)
+set(LIB_SRC_DIR ${CMAKE_SOURCE_DIR}/r-package/src)
+
+add_library(packer STATIC ${LIB_SRC_DIR}/segment.cpp ${LIB_SRC_DIR}/segment_packer.cpp)
+target_include_directories(packer PUBLIC ${LIB_SRC_DIR}/include)
 
 add_executable(main main.cpp)
-target_include_directories(main PUBLIC include)
-target_link_libraries(main stacker)
+target_link_libraries(main packer)
 
 
 find_program(R_EXECUTABLE R)
